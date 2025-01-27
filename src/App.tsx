@@ -36,6 +36,7 @@ export class App extends React.Component<{}, State> {
         today: new Date(),
       });
 
+      // eslint-disable-next-line no-console
       console.log(Date.now().toString().slice(-4));
     }, 1000);
   }
