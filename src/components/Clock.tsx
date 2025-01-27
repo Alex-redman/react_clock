@@ -1,101 +1,46 @@
 import React from 'react';
-
-function getRandomName(): string {
-  const value = Date.now().toString().slice(-4);
-
-  return `Clock-${value}`;
-}
-
-interface State {
-  today: Date;
-  clockName: string;
-  hasClock: boolean;
-}
-
-export class Clock extends React.Component<{}, State> {
+type Props = {
+  name: string;
+};
+type State = {
+  currentTime: string;
+};
+export class Clock extends React.Component<Props, State> {
   state: State = {
-    today: new Date(),
-    clockName: 'Clock-0',
-    hasClock: true,
+    currentTime: new Date().toUTCString().slice(-12, -4),
   };
 
-  private clockNameTimerId: number | null = null;
-
-  private todayTimerId: number | null = null;
+  timerId: number | undefined;
 
   componentDidMount() {
-    this.clockNameTimerId = window.setInterval(() => {
-      const newClockName = getRandomName();
+    this.timerId = window.setInterval(() => {
+      const now = new Date().toUTCString().slice(-12, -4);
 
-      this.setState(prevState => {
-        if (prevState.clockName !== newClockName) {
-          // eslint-disable-next-line no-console
-          console.warn(
-            `Renamed from ${prevState.clockName} to ${newClockName}`,
-          );
-        }
-
-        return { clockName: newClockName };
-      });
-    }, 3300);
-
-    this.todayTimerId = window.setInterval(() => {
-      if (this.state.hasClock) {
-        this.setState({
-          today: new Date(),
-        });
-
-        // eslint-disable-next-line no-console
-        console.log(new Date().toUTCString().slice(-12, -4));
-      }
+      // eslint-disable-next-line no-console
+      console.log(now);
+      this.setState({ currentTime: now });
     }, 1000);
+  }
 
-    document.addEventListener('contextmenu', this.handleRightClick);
-    document.addEventListener('click', this.handleLeftClick);
+  componentDidUpdate(prevProps: Readonly<Props>): void {
+    if (prevProps.name !== this.props.name) {
+      // eslint-disable-next-line no-console
+      console.warn(`Renamed from ${prevProps.name} to ${this.props.name}`);
+    }
   }
 
   componentWillUnmount() {
-    if (this.clockNameTimerId) {
-      clearInterval(this.clockNameTimerId);
+    if (this.timerId) {
+      clearInterval(this.timerId);
     }
-
-    if (this.todayTimerId) {
-      clearInterval(this.todayTimerId);
-    }
-
-    document.removeEventListener('contextmenu', this.handleRightClick);
-    document.removeEventListener('click', this.handleLeftClick);
   }
 
-  handleRightClick = (event: MouseEvent) => {
-    event.preventDefault();
-    this.setState({ hasClock: false });
-  };
-
-  handleLeftClick = () => {
-    this.setState({ hasClock: true }, () => {
-      this.setState({
-        today: new Date(),
-      });
-    });
-  };
-
   render() {
-    const { clockName, today, hasClock } = this.state;
-
     return (
-      <div className="App">
-        <h1>React clock</h1>
-
-        {hasClock && (
-          <div className="Clock">
-            <strong className="Clock__name">{clockName}</strong>
-            {' time is '}
-            <span className="Clock__time">
-              {today.toUTCString().slice(-12, -4)}
-            </span>
-          </div>
-        )}
+      <div className="Clock">
+        <strong className="Clock__name">{this.props.name}</strong>
+        {' time is '}
+        <span className="Clock__time">{this.state.currentTime}</span>
       </div>
     );
   }
