@@ -7,31 +7,81 @@ function getRandomName(): string {
   return `Clock-${value}`;
 }
 
-export const App: React.FC = () => {
-  const today = new Date();
-  let clockName = 'Clock-0';
+interface State {
+  today: Date;
+  clockName: string;
+  isVisible: boolean;
+}
 
-  // This code starts a timer
-  const timerId = window.setInterval(() => {
-    clockName = getRandomName();
-  }, 3300);
+export class App extends React.Component<{}, State> {
+  state: State = {
+    today: new Date(),
+    clockName: 'Clock-0',
+    isVisible: true,
+  };
 
-  // this code stops the timer
-  window.clearInterval(timerId);
+  private clockNameTimerId: number | null = null;
 
-  return (
-    <div className="App">
-      <h1>React clock</h1>
+  private todayTimerId: number | null = null;
 
-      <div className="Clock">
-        <strong className="Clock__name">{clockName}</strong>
+  componentDidMount() {
+    this.clockNameTimerId = window.setInterval(() => {
+      this.setState({
+        clockName: getRandomName(),
+      });
+    }, 3300);
 
-        {' time is '}
+    this.todayTimerId = window.setInterval(() => {
+      this.setState({
+        today: new Date(),
+      });
 
-        <span className="Clock__time">
-          {today.toUTCString().slice(-12, -4)}
-        </span>
+      console.log(Date.now().toString().slice(-4));
+    }, 1000);
+  }
+
+  componentWillUnmount() {
+    if (this.clockNameTimerId) {
+      clearInterval(this.clockNameTimerId);
+    }
+
+    if (this.todayTimerId) {
+      clearInterval(this.todayTimerId);
+    }
+  }
+
+  handleRightClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    this.setState({ isVisible: false });
+  };
+
+  handleLeftClick = () => {
+    this.setState({ isVisible: true });
+  };
+
+  render() {
+    const { clockName, today, isVisible } = this.state;
+
+    return (
+      <div
+        className="App"
+        onClick={this.handleLeftClick}
+        onContextMenu={this.handleRightClick}
+      >
+        <h1>React clock</h1>
+
+        {isVisible && (
+          <div className="Clock">
+            <strong className="Clock__name">{clockName}</strong>
+
+            {' time is '}
+
+            <span className="Clock__time">
+              {today.toUTCString().slice(-12, -4)}
+            </span>
+          </div>
+        )}
       </div>
-    </div>
-  );
-};
+    );
+  }
+}
